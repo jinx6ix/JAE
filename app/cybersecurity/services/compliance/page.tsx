@@ -57,7 +57,7 @@ export default function CompliancePage() {
               </CardHeader>
               <CardContent>
                 <Button variant="outline" className="w-full" asChild>
-                  <Link href={`/compliance/${framework.name.toLowerCase()}`}>
+                  <Link href={`/cybersecurity/services/compliance/${framework.name.toLowerCase()}`}>
                     Learn More
                   </Link>
                 </Button>

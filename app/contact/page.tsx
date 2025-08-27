@@ -1,209 +1,339 @@
 "use client"
 
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Phone, Server, Shield, MessageSquare } from "lucide-react";
-import Link from "next/link";
+import { useState } from "react"
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { 
+  Mail, 
+  Phone, 
+  MapPin, 
+  MessageSquare, 
+  Server, 
+  Shield, 
+  Send,
+  Clock,
+  CheckCircle
+} from "lucide-react"
 
 export default function ContactPage() {
-  return (
-    <div className="container mx-auto py-12 px-4 md:px-6">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="text-center mb-16"
-      >
-        <h1 className="text-4xl font-bold tracking-tight mb-4">
-          How Can We Help?
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-          Whether you need hosting support or security consultation, our team is ready.
-        </p>
-      </motion.div>
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    company: "",
+    service: "web-hosting",
+    message: ""
+  })
 
-      {/* Contact Cards */}
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={{
-          visible: { transition: { staggerChildren: 0.2 } },
-        }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16"
-      >
-        {[
-          {
-            icon: Server,
-            title: "Hosting Support",
-            content: "24/7 technical assistance for hosting services",
-            action: "Open Ticket",
-            link: "#hosting-support",
-            color: "text-blue-500",
-          },
-          {
-            icon: Shield,
-            title: "Security Team",
-            content: "Emergency security incidents only",
-            action: "Contact SOC",
-            link: "#security-contact",
-            color: "text-red-500",
-          },
-          {
-            icon: Mail,
-            title: "General Inquiries",
-            content: "hello@company.com",
-            action: "Email Us",
-            link: "mailto:hello@company.com",
-            color: "text-primary",
-          },
-          {
-            icon: Phone,
-            title: "Sales",
-            content: "+1 (555) 123-4567",
-            action: "Call Now",
-            link: "tel:+15551234567",
-            color: "text-green-500",
-          },
-        ].map((item, index) => (
+  const [isSubmitted, setIsSubmitted] = useState(false)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    // Here you would typically send the form data to your backend
+    console.log("Form submitted:", formData)
+    setIsSubmitted(true)
+    
+    // Reset form after 3 seconds
+    setTimeout(() => {
+      setIsSubmitted(false)
+      setFormData({
+        name: "",
+        email: "",
+        company: "",
+        service: "web-hosting",
+        message: ""
+      })
+    }, 3000)
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white">
+      {/* Header Section */}
+      <div className="container mx-auto py-12 px-4 md:px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-4xl font-bold tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-green-400">
+            Contact Us
+          </h1>
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            Get in touch with our experts to discuss your web hosting and cybersecurity needs
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Contact Form */}
           <motion.div
-            key={index}
-            variants={{
-              hidden: { opacity: 0, y: 20 },
-              visible: { opacity: 1, y: 0 },
-            }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
           >
-            <Card className="h-full border-t-4" style={{ borderTopColor: item.color }}>
+            <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
-                <div className={`p-2 w-12 h-12 rounded-lg bg-primary/10 mb-4 flex items-center justify-center ${item.color}`}>
-                  <item.icon className="h-6 w-6" />
-                </div>
-                <CardTitle>{item.title}</CardTitle>
+                <CardTitle className="text-2xl flex items-center">
+                  <MessageSquare className="mr-2 h-6 w-6 text-cyan-400" />
+                  Send us a message
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-6">{item.content}</p>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href={item.link}>{item.action}</Link>
+                {isSubmitted ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="h-16 w-16 text-green-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">Message Sent!</h3>
+                    <p className="text-gray-300">We'll get back to you within 24 hours.</p>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Full Name</Label>
+                      <Input
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="Your name"
+                        required
+                        className="bg-gray-700 border-gray-600"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email Address</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="your.email@example.com"
+                        required
+                        className="bg-gray-700 border-gray-600"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="company">Company (Optional)</Label>
+                      <Input
+                        id="company"
+                        name="company"
+                        value={formData.company}
+                        onChange={handleChange}
+                        placeholder="Your company name"
+                        className="bg-gray-700 border-gray-600"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="service">I need help with</Label>
+                      <select
+                        title="Service"
+                        id="service"
+                        name="service"
+                        value={formData.service}
+                        onChange={handleChange}
+                        className="w-full p-3 rounded-md bg-gray-700 border border-gray-600 text-white"
+                      >
+                        <option value="web-hosting">Web Hosting</option>
+                        <option value="cybersecurity">Cybersecurity</option>
+                        <option value="both">Both Services</option>
+                        <option value="other">Other Inquiry</option>
+                      </select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="message">Message</Label>
+                      <Textarea
+                        id="message"
+                        name="message"
+                        value={formData.message}
+                        onChange={handleChange}
+                        placeholder="How can we help you?"
+                        rows={5}
+                        required
+                        className="bg-gray-700 border-gray-600"
+                      />
+                    </div>
+                    
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-gradient-to-r from-cyan-600 to-green-600 hover:from-cyan-700 hover:to-green-700"
+                    >
+                      <Send className="mr-2 h-4 w-4" /> Send Message
+                    </Button>
+                  </form>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          {/* Contact Information */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+            className="space-y-8"
+          >
+            {/* Service Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader className="pb-3">
+                  <div className="p-2 w-12 h-12 rounded-lg bg-cyan-500/10 mb-2 flex items-center justify-center">
+                    <Server className="h-6 w-6 text-cyan-400" />
+                  </div>
+                  <CardTitle>Web Hosting Support</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-300 text-sm">
+                    Get assistance with hosting plans, migrations, performance issues, and technical support.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-gray-800 border-gray-700">
+                <CardHeader className="pb-3">
+                  <div className="p-2 w-12 h-12 rounded-lg bg-green-500/10 mb-2 flex items-center justify-center">
+                    <Shield className="h-6 w-6 text-green-400" />
+                  </div>
+                  <CardTitle>Cybersecurity Solutions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-300 text-sm">
+                    Consult with our security experts about vulnerability assessments, penetration testing, and compliance.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Contact Details */}
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle>Get in touch</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-start">
+                  <div className="p-2 rounded-full bg-blue-500/10 mr-4 flex-shrink-0">
+                    <Mail className="h-5 w-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Email</h3>
+                    <p className="text-gray-300">support@yourcompany.com</p>
+                    <p className="text-gray-300">sales@yourcompany.com</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start">
+                  <div className="p-2 rounded-full bg-purple-500/10 mr-4 flex-shrink-0">
+                    <Phone className="h-5 w-5 text-purple-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Phone</h3>
+                    <p className="text-gray-300">+1 (800) 123-4567 (Toll-free)</p>
+                    <p className="text-gray-300">+1 (555) 123-4567 (International)</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start">
+                  <div className="p-2 rounded-full bg-amber-500/10 mr-4 flex-shrink-0">
+                    <MapPin className="h-5 w-5 text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Office</h3>
+                    <p className="text-gray-300">123 Tech Boulevard</p>
+                    <p className="text-gray-300">San Francisco, CA 94107</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start">
+                  <div className="p-2 rounded-full bg-green-500/10 mr-4 flex-shrink-0">
+                    <Clock className="h-5 w-5 text-green-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Support Hours</h3>
+                    <p className="text-gray-300">24/7 Technical Support</p>
+                    <p className="text-gray-300">Sales: Mon-Fri 9AM-6PM EST</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Emergency Support */}
+            <Card className="bg-red-900/20 border-red-700/30">
+              <CardHeader>
+                <CardTitle className="text-red-400">Emergency Security Incident?</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-300 mb-4">
+                  If you're experiencing a security breach or urgent issue, contact our SOC immediately.
+                </p>
+                <Button variant="outline" className="w-full border-red-500 text-red-400 hover:bg-red-500/10">
+                  <Shield className="mr-2 h-4 w-4" /> Emergency SOC Hotline: +1 (888) 911-SOC1
                 </Button>
               </CardContent>
             </Card>
           </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Dual-Form Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16"
-      >
-        {/* Hosting Form */}
-        <div className="bg-muted rounded-xl p-8">
-          <div className="flex items-center mb-6">
-            <Server className="h-6 w-6 text-blue-500 mr-3" />
-            <h2 className="text-2xl font-bold">Hosting Inquiry</h2>
-          </div>
-          <form className="space-y-4">
-            <div>
-              <label htmlFor="hosting-plan" className="block mb-2">Interested Plan</label>
-              <select
-                id="hosting-plan"
-                className="w-full px-4 py-2 rounded-lg border"
-              >
-                <option>Shared Hosting</option>
-                <option>VPS</option>
-                <option>Dedicated Server</option>
-                <option>Managed WordPress</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="hosting-email" className="block mb-2">Email</label>
-              <input
-                type="email"
-                id="hosting-email"
-                className="w-full px-4 py-2 rounded-lg border"
-              />
-            </div>
-            <div>
-              <label htmlFor="hosting-message" className="block mb-2">Requirements</label>
-              <textarea
-                id="hosting-message"
-                rows={3}
-                className="w-full px-4 py-2 rounded-lg border"
-              ></textarea>
-            </div>
-            <Button type="submit" className="w-full">
-              Request Hosting Quote
-            </Button>
-          </form>
         </div>
+      </div>
 
-        {/* Security Form */}
-        <div className="bg-muted rounded-xl p-8">
-          <div className="flex items-center mb-6">
-            <Shield className="h-6 w-6 text-red-500 mr-3" />
-            <h2 className="text-2xl font-bold">Security Consultation</h2>
-          </div>
-          <form className="space-y-4">
-            <div>
-              <label htmlFor="security-service" className="block mb-2">Service Needed</label>
-              <select
-                id="security-service"
-                className="w-full px-4 py-2 rounded-lg border"
-              >
-                <option>Vulnerability Assessment</option>
-                <option>Penetration Testing</option>
-                <option>Compliance Audit</option>
-                <option>Incident Response</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="security-email" className="block mb-2">Email</label>
-              <input
-                type="email"
-                id="security-email"
-                className="w-full px-4 py-2 rounded-lg border"
-              />
-            </div>
-            <div>
-              <label htmlFor="urgency" className="block mb-2">Urgency</label>
-              <select
-                id="urgency"
-                className="w-full px-4 py-2 rounded-lg border"
-              >
-                <option>Standard (48h response)</option>
-                <option>High Priority (24h response)</option>
-                <option>Emergency (4h response)</option>
-              </select>
-            </div>
-            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700">
-              Request Security Audit
-            </Button>
-          </form>
-        </div>
-      </motion.div>
+      {/* FAQ Section */}
+      <div className="container mx-auto py-12 px-4 md:px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-12"
+        >
+          <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
+          <p className="text-gray-300 max-w-3xl mx-auto">
+            Quick answers to common questions about our services and support
+          </p>
+        </motion.div>
 
-      {/* Live Chat CTA */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true }}
-        className="bg-primary/10 rounded-xl p-8 text-center"
-      >
-        <div className="flex justify-center mb-4">
-          <MessageSquare className="h-8 w-8 text-primary" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          {[
+            {
+              question: "How quickly can you respond to support requests?",
+              answer: "We guarantee response within 15 minutes for critical issues, 1 hour for high priority, and 4 hours for standard requests."
+            },
+            {
+              question: "Do you offer customized hosting solutions?",
+              answer: "Yes, we provide fully customized hosting environments tailored to your specific performance and security requirements."
+            },
+            {
+              question: "What compliance frameworks do you support?",
+              answer: "We're experienced with HIPAA, GDPR, SOC 2, PCI DSS, and can help you achieve compliance for your specific industry."
+            },
+            {
+              question: "Can you help migrate my existing website?",
+              answer: "Absolutely! We offer free migration services for new customers to ensure a smooth transition with minimal downtime."
+            }
+          ].map((faq, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              viewport={{ once: true }}
+              className="bg-gray-800/50 p-6 rounded-lg border border-gray-700"
+            >
+              <h3 className="font-semibold mb-2 text-cyan-300">{faq.question}</h3>
+              <p className="text-gray-300">{faq.answer}</p>
+            </motion.div>
+          ))}
         </div>
-        <h2 className="text-2xl font-bold mb-2">Need Immediate Help?</h2>
-        <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-          Our live chat team can assist with both hosting and security issues in real-time.
-        </p>
-        <Button size="lg" className="bg-primary hover:bg-primary/90">
-          Start Live Chat
-        </Button>
-      </motion.div>
+      </div>
     </div>
-  );
+  )
 }
