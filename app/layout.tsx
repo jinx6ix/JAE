@@ -20,7 +20,6 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <SessionProvider>
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
@@ -32,6 +31,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-    </SessionProvider>
   )
 }

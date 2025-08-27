@@ -1,16 +1,14 @@
-import GoogleProvider from "next-auth/providers/google"
+import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { NextAuthOptions } from "next-auth"
+import { createClient } from "@supabase/supabase-js"
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // server-only
+)
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    // 🔐 Google Login
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-
-    // 🔑 Credentials login
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -18,47 +16,45 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const res = await fetch(`${process.env.NEXTAUTH_URL}/api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(credentials),
+        if (!credentials?.email || !credentials?.password) return null
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: credentials.email,
+          password: credentials.password,
         })
 
-        const data = await res.json()
+        if (error || !data.user) return null
 
-        if (res.ok && data.user) {
-          return data.user // This object will be attached to session.user and token.user
+        // Fetch role from profiles
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role, full_name")
+          .eq("id", data.user.id)
+          .single()
+
+        return {
+          id: data.user.id,
+          name: profile?.full_name || data.user.email,
+          email: data.user.email,
+          role: profile?.role || "user",
         }
-
-        return null
       },
     }),
   ],
-
-  // 🧠 Store extra user info in JWT token and session
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.user = user
-      }
-      return token
-    },
-    async session({ session, token }) {
-      session.user = token.user as any
-      return session
-    },
-  },
-
-  // 🔐 Use JWT for stateless session
-  session: {
-    strategy: "jwt",
-  },
-
-  // 🔁 Redirect users to this custom login page
   pages: {
     signIn: "/admin/login",
   },
-
-  // 🔒 Required by NextAuth for encryption
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) token.role = user.role
+      return token
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.role = token.role as string
+      }
+      return session
+    },
+  },
   secret: process.env.NEXTAUTH_SECRET,
 }
