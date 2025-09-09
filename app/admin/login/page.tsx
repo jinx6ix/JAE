@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function AdminLoginPage() {
@@ -42,6 +42,7 @@ export default function AdminLoginPage() {
   };
 
   return (
+    <Suspense fallback={<div>Loading login...</div>}>
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-6">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8">
         <h1 className="text-2xl font-bold mb-6">Admin Login</h1>
@@ -73,5 +74,6 @@ export default function AdminLoginPage() {
         {error && <p className="text-red-500 mt-4">{error}</p>}
       </div>
     </div>
+    </Suspense>
   );
 }
