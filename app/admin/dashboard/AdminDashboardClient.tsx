@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import type { Session } from "next-auth";
 import { createClient, RealtimeChannel } from "@supabase/supabase-js";
 
-// Initialize Supabase client
+// Supabase client
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -17,11 +17,11 @@ export default function AdminDashboardClient({ session }: { session: Session }) 
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    // ✅ Step 1: Fetch latest role from Supabase on first load
+    // 1. Fetch role on load
     const fetchRole = async () => {
       setLoading(true);
       const { data, error } = await supabase
-        .from("profiles")
+        .from("users") // ✅ use users table we created earlier
         .select("role")
         .eq("id", session.user.id)
         .single();
@@ -36,15 +36,15 @@ export default function AdminDashboardClient({ session }: { session: Session }) 
 
     fetchRole();
 
-    // ✅ Step 2: Subscribe to realtime role changes
+    // 2. Realtime updates
     const channel: RealtimeChannel = supabase
-      .channel("profile-role-updates")
+      .channel("user-role-updates")
       .on(
         "postgres_changes",
         {
           event: "UPDATE",
           schema: "public",
-          table: "profiles",
+          table: "users", // ✅ update users table instead of profiles
           filter: `id=eq.${session.user.id}`,
         },
         (payload) => {
@@ -54,9 +54,7 @@ export default function AdminDashboardClient({ session }: { session: Session }) 
           }
         }
       )
-      .subscribe((status) => {
-        console.log("Realtime subscription status:", status);
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
@@ -65,7 +63,9 @@ export default function AdminDashboardClient({ session }: { session: Session }) 
 
   return (
     <div className="p-4 rounded-xl border shadow-md bg-white">
-      <h1 className="text-xl font-bold">Welcome, {session.user?.name ?? "User"}</h1>
+      <h1 className="text-xl font-bold">
+        Welcome, {session.user?.name ?? "User"}
+      </h1>
       <p className="text-gray-700">
         Your current role:{" "}
         <span className="font-semibold">

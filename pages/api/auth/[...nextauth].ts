@@ -1,11 +1,18 @@
-import NextAuth, { User } from "next-auth"
+import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { createClient } from "@supabase/supabase-js"
 import { ReactNode } from "react"
 
-const supabase = createClient(
+// ✅ Public client for login
+const supabasePublic = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // Keep secret on server only
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! // only anon here
+)
+
+// ✅ Private client for fetching role/profile
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // only for secure queries
 )
 
 declare module "next-auth" {
@@ -16,8 +23,9 @@ declare module "next-auth" {
   interface Session {
     user: {
       name: ReactNode
-      id: any
+      id: string
       role?: string
+      email?: string
     }
   }
 }
@@ -33,20 +41,25 @@ export default NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
-        // Authenticate via Supabase
-        const { data, error } = await supabase.auth.signInWithPassword({
+        // ✅ Use public client for login
+        const { data, error } = await supabasePublic.auth.signInWithPassword({
           email: credentials.email,
           password: credentials.password,
         })
 
-        if (error || !data.user) return null
+        if (error || !data.user) {
+          console.error("Login failed:", error)
+          return null
+        }
 
-        // Fetch profile with role
-        const { data: profile } = await supabase
+        // ✅ Use service role client to fetch role
+        const { data: profile, error: profileError } = await supabaseAdmin
           .from("profiles")
           .select("role, full_name")
           .eq("id", data.user.id)
           .single()
+
+        if (profileError) console.warn("No profile found:", profileError)
 
         return {
           id: data.user.id,
@@ -62,15 +75,11 @@ export default NextAuth({
   },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role
-      }
+      if (user) token.role = user.role
       return token
     },
     async session({ session, token }) {
-      if (token) {
-        session.user.role = token.role as string | undefined
-      }
+      if (token) session.user.role = token.role as string | undefined
       return session
     },
   },
